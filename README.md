@@ -1,3 +1,5 @@
+<img align="left" src="/icon/icon-48.png" alt="Resume application project app icon" />
+
 # Smartschool Plus
 
 Install the Chrome extension from the Chrome Web Store. 
