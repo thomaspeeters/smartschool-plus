@@ -1,15 +1,19 @@
 
 
-a.ss-plus-dl-orig {
-	display: inline-block;
-	margin: 5px 0;
+.ss-plus-btn {
 	padding: 5px 10px;
-	border-radius: 5px;
 	color: #FFFFFF;
 	background: rgb(153,1,166);
 	background: linear-gradient(180deg, rgba(153,1,166,1) 0%, rgba(88,9,121,1) 30%, rgba(93,0,244,1) 100%);
+	border-radius: 5px;
+	margin: 0 5px;
 }
 
-a.ss-plus-dl-orig:hover {
+.ss-plus-btn:hover {
 	color: #FFFFFF;
+}
+
+a.ss-plus-btn {
+	display: inline-block;
+	margin: 5px 0;
 }
