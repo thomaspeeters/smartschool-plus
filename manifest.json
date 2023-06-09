@@ -11,7 +11,8 @@
       "js": [
         "js/jquery-3.7.0.min.js",
         "js/fontawesome-all.min.js",
-        "js/content.js"
+        "js/content.js",
+		"js/zip-full.min.js"
       ],
       "css": [
         "css/style.css"

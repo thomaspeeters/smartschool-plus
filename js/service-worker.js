@@ -22,13 +22,27 @@ async function handleMessages(message) {
 
     if(message.type === "dl-album-count-pages") {
         if(message.data.numberOfPages && message.data.origin) {
-            sendMessageToOffscreenDocument("dl-album-photos", {
+            sendMessageToOffscreenDocument("dl-album-get-photodata", {
                 albumId: message.data.albumId,
                 numberOfPages: message.data.numberOfPages,
                 origin: message.data.origin
             });
         }
     }
+
+	if(message.type === "dl-album-get-photodata") {
+		if(message.data.photoData) {
+			chrome.runtime.sendMessage({
+				target: 'content',
+				type: "dl-album-photoData",
+				data: {
+					photoData: message.data.photoData
+				}
+			});
+		}
+
+		//closeOffscreenDocument();
+	}
 }
 
 async function sendMessageToOffscreenDocument(type, data) {
@@ -43,13 +57,11 @@ async function sendMessageToOffscreenDocument(type, data) {
     // Now that we have an offscreen document, we can dispatch the
     // message.
     chrome.runtime.sendMessage({
-        type,
         target: 'offscreen',
+        type,
         data
     });
 }
-
-
 
 async function setupOffscreenDocument(path) {
     // Check all windows controlled by the service worker to see if one 

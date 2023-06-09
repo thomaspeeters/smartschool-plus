@@ -26,15 +26,16 @@ async function handleMessages(message) {
         }
     }
 
-    if (message.type === "dl-album-photos") {
+    if (message.type === "dl-album-get-photodata") {
         if (message.data.albumId && message.data.numberOfPages && message.data.origin) {
             var photoData = await getPhotoData(message.data.albumId, message.data.numberOfPages, message.data.origin);
 
             chrome.runtime.sendMessage({
                 target: 'service-worker',
+				type: 'dl-album-get-photodata',
                 data: {
-                    res: photoData
-                }
+					photoData: photoData
+				}
             });
         }
     }
@@ -53,11 +54,11 @@ async function countPages(albumId, origin) {
     return numberOfPages;
 }
 
-async function getPhotoData(albumId, numberOfPages, origin) {
+async function getPhotoData(albumId, numberOfPages, photoOrigin) {
     var urls = [];
 
     for (let i = 1; i <= numberOfPages; i++) {
-        urls.push(origin + "/index.php?module=Photos&file=album&function=show_album&album=" + albumId + "&page=" + i);
+        urls.push(photoOrigin + "/index.php?module=Photos&file=album&function=show_album&album=" + albumId + "&page=" + i);
     }
 
     const results = await Promise.all(urls.map(processUrl));
@@ -67,7 +68,7 @@ async function getPhotoData(albumId, numberOfPages, origin) {
         let parser = new DOMParser();
         let doc = parser.parseFromString(results[index].text, 'text/html');
 
-        let photoUrls = [...doc.querySelectorAll('.thumb_img a')].map(photoAnchor => origin + photoAnchor.getAttribute('href'));
+        let photoUrls = [...doc.querySelectorAll('.thumb_img a')].map(photoAnchor => photoOrigin + photoAnchor.getAttribute('href'));
 
         photoData = photoData.concat(await processPhotoUrls(photoUrls));
     }

@@ -1,12 +1,27 @@
+
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		console.log(sender.tab ?
 			"from a content script:" + sender.tab.url :
 			"from the extension");
-		if (request.greeting === "hello")
-			sendResponse({ farewell: "goodbye from content" });
+		console.log(request);
 	}
 );
+
+/*
+chrome.runtime.onMessage.addListener(handleMessages);
+
+async function handleMessages(message) {
+console.log('test in');
+
+console.log(message);
+    if (message.target !== 'content') {
+        return false;
+    }
+
+	
+}
+*/
 
 $(function () {
 	let searchParams = new URLSearchParams(window.location.search);
