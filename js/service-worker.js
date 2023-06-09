@@ -4,12 +4,11 @@ let creating; // A global promise to avoid concurrency issues
 chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(message) {
-    // Return early if this message isn't meant for the background script
+    console.log(message);
+
     if (message.target !== 'service-worker') {
         return;
     }
-
-    console.log(message);
 
     if (message.type === "dl-album") {
         if (message.data.albumId && message.data.origin) {
@@ -32,9 +31,13 @@ async function handleMessages(message) {
 
 	if(message.type === "dl-album-get-photodata") {
 		if(message.data.photoData) {
-			chrome.runtime.sendMessage({
+            const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+
+injectIframe(tab);
+
+			chrome.tabs.sendMessage(tab.id, {
 				target: 'content',
-				type: "dl-album-photoData",
+				type: 'dl-album-photoData',
 				data: {
 					photoData: message.data.photoData
 				}
@@ -44,6 +47,38 @@ async function handleMessages(message) {
 		//closeOffscreenDocument();
 	}
 }
+
+function injectIframe(tab) {
+
+
+
+	chrome.scripting.executeScript({
+		target: { tabId: tab.id },
+		func: () => {
+
+            console.log(tab);
+            console.log(document);
+
+		  const oldIframe = document.getElementById('ss-plus-iframe');
+	
+		  if (oldIframe) {
+			oldIframe.remove();
+			return;
+		  }
+	
+		  const iframe = document.createElement('iframe');
+		  iframe.setAttribute('id', 'ss-plus-iframe');
+		  iframe.setAttribute(
+			'style',
+			'top: 10px;right: 10px;width: 400px;height: calc(100% - 20px);z-index: 2147483650;border: none; position:fixed;'
+		  );
+		  iframe.setAttribute('allow', '');
+		  iframe.src = chrome.runtime.getURL('iframe.html');
+	
+		  document.body.appendChild(iframe);
+		},
+	  });
+  }
 
 async function sendMessageToOffscreenDocument(type, data) {
     // Create an offscreen document if one doesn't exist yet

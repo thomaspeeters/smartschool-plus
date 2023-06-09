@@ -1,6 +1,16 @@
 chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(message) {
+
+    // chrome.runtime.sendMessage({
+    //     target: 'service-worker',
+    //     type: 'debug',
+    //     data: {
+    //         msg: message
+    //     }
+    // });
+
+
     // Return early if this message isn't meant for the offscreen document.
     if (message.target !== 'offscreen') {
         return false;
@@ -8,42 +18,38 @@ async function handleMessages(message) {
 
     if (message.type === "dl-album-count-pages") {
         if (message.data.albumId && message.data.origin) {
-            let albumId = message.data.albumId;
+            let numberOfPages = await countPages(message.data.albumId, message.data.origin);
 
-            (async () => {
-                let numberOfPages = await countPages(albumId, message.data.origin);
-
-                chrome.runtime.sendMessage({
-                    target: 'service-worker',
-                    type: 'dl-album-count-pages',
-                    data: {
-                        albumId: albumId,
-                        numberOfPages: numberOfPages,
-                        origin: message.data.origin
-                    }
-                });
-            })();
+            chrome.runtime.sendMessage({
+                target: 'service-worker',
+                type: 'dl-album-count-pages',
+                data: {
+                    albumId: message.data.albumId,
+                    numberOfPages: numberOfPages,
+                    origin: message.data.origin
+                }
+            });
         }
     }
 
     if (message.type === "dl-album-get-photodata") {
         if (message.data.albumId && message.data.numberOfPages && message.data.origin) {
-            var photoData = await getPhotoData(message.data.albumId, message.data.numberOfPages, message.data.origin);
+            let photoData = await getPhotoData(message.data.albumId, message.data.numberOfPages, message.data.origin);
 
             chrome.runtime.sendMessage({
                 target: 'service-worker',
-				type: 'dl-album-get-photodata',
+                type: 'dl-album-get-photodata',
                 data: {
-					photoData: photoData
-				}
+                    photoData: photoData
+                }
             });
         }
     }
 }
 
-async function countPages(albumId, origin) {
+async function countPages(albumId, albumOrigin) {
 
-    const html = await processUrl(origin + "/index.php?module=Photos&file=album&function=show_album&album=" + albumId);
+    const html = await processUrl(albumOrigin + "/index.php?module=Photos&file=album&function=show_album&album=" + albumId);
 
     var parser = new DOMParser();
     var doc = parser.parseFromString(html.text, 'text/html');
@@ -70,13 +76,13 @@ async function getPhotoData(albumId, numberOfPages, photoOrigin) {
 
         let photoUrls = [...doc.querySelectorAll('.thumb_img a')].map(photoAnchor => photoOrigin + photoAnchor.getAttribute('href'));
 
-        photoData = photoData.concat(await processPhotoUrls(photoUrls));
+        photoData = photoData.concat(await processPhotoUrls(photoUrls, photoOrigin));
     }
 
     return photoData;
 }
 
-async function processPhotoUrls(photoUrls) {
+async function processPhotoUrls(photoUrls, photoOrigin) {
     const photoUrlData = [];
     const photoPages = await Promise.all(photoUrls.map(processUrl));
 
@@ -88,11 +94,11 @@ async function processPhotoUrls(photoUrls) {
         let photoParams = new URLSearchParams(photoPages[indexPhoto].url);
         let photoId = photoParams.get('photo');
 
-        let photoOrigUrl = origin + "/index.php?module=Photos&file=load_photo&function=load_photo&obj_type=photo&img_type=original&id=" + photoId
+        let photoOriginalUrl = photoOrigin + "/index.php?module=Photos&file=load_photo&function=load_photo&obj_type=photo&img_type=original&id=" + photoId
 
         photoUrlData.push({
             filename: photoFilename,
-            originalUrl: photoOrigUrl
+            originalUrl: photoOriginalUrl
         });
     }
 

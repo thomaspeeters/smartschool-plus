@@ -1,27 +1,20 @@
-
-chrome.runtime.onMessage.addListener(
-	function (request, sender, sendResponse) {
-		console.log(sender.tab ?
-			"from a content script:" + sender.tab.url :
-			"from the extension");
-		console.log(request);
-	}
-);
-
-/*
 chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(message) {
-console.log('test in');
 
-console.log(message);
     if (message.target !== 'content') {
-        return false;
+        return;
     }
 
-	
+	if (message.type === "dl-album-photoData") {
+        if (message.data.photoData) {
+            console.log('found ' + message.data.photoData.length + ' photos');
+
+			zipAlbum(message.data.photoData);
+        }
+    }
 }
-*/
+
 
 $(function () {
 	let searchParams = new URLSearchParams(window.location.search);
@@ -101,4 +94,36 @@ function dlAlbum(albumId) {
 			}
 		});
 	})();
+}
+
+function zipAlbum(photoData) {
+
+	// injectIframe();
+
+
+	// console.log(zip);
+
+	// const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+
+	//   getZipFileBlob(photoData)
+	// 	.then(downloadFile);
+	  
+}
+
+async function getZipFileBlob(photoData) {
+	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+
+	for (const photo of photoData) {
+		await zipWriter.add(photo.filename, new zip.HttpReader(photo.originalUrl));
+	}
+
+	return zipWriter.close();
+}
+
+function downloadFile(blob) {
+	document.body.appendChild(Object.assign(document.createElement("a"), {
+		download: "album.zip",
+		href: URL.createObjectURL(blob),
+		textContent: "Download zip file",
+	}));
 }
