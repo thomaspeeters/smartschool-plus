@@ -2,16 +2,6 @@ chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(message) {
 
-    // chrome.runtime.sendMessage({
-    //     target: 'service-worker',
-    //     type: 'debug',
-    //     data: {
-    //         msg: message
-    //     }
-    // });
-
-
-    // Return early if this message isn't meant for the offscreen document.
     if (message.target !== 'offscreen') {
         return false;
     }
@@ -40,6 +30,7 @@ async function handleMessages(message) {
                 target: 'service-worker',
                 type: 'dl-album-get-photodata',
                 data: {
+                    albumId: message.data.albumId,
                     photoData: photoData
                 }
             });

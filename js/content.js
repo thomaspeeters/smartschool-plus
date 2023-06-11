@@ -2,19 +2,16 @@ chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(message) {
 
-    if (message.target !== 'content') {
-        return;
-    }
+	if (message.target !== 'content') {
+		return;
+	}
 
-	if (message.type === "dl-album-photoData") {
-        if (message.data.photoData) {
-            console.log('found ' + message.data.photoData.length + ' photos');
-
-			zipAlbum(message.data.photoData);
-        }
-    }
+	if (message.type === "make-album-zip") {
+		if (message.data.photoData && message.data.albumId) {
+			makeAlbumZip(message.data.albumId, message.data.photoData);
+		}
+	}
 }
-
 
 $(function () {
 	let searchParams = new URLSearchParams(window.location.search);
@@ -88,7 +85,7 @@ function dlAlbum(albumId) {
 		const response = await chrome.runtime.sendMessage({
 			type: "dl-album",
 			target: "service-worker",
-			data: { 
+			data: {
 				albumId: albumId,
 				origin: window.location.origin
 			}
@@ -96,34 +93,36 @@ function dlAlbum(albumId) {
 	})();
 }
 
-function zipAlbum(photoData) {
+function makeAlbumZip(albumId, photoData) {
+	zip.configure({ chunkSize: 128, useWebWorkers: false });
 
-	// injectIframe();
-
-
-	// console.log(zip);
-
-	// const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
-
-	//   getZipFileBlob(photoData)
-	// 	.then(downloadFile);
-	  
+	getZipFileBlob(photoData)
+		.then(blob => downloadFile(blob, albumId));
 }
 
 async function getZipFileBlob(photoData) {
 	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
 
 	for (const photo of photoData) {
+		console.log("Adding photo " + photo.filename);
 		await zipWriter.add(photo.filename, new zip.HttpReader(photo.originalUrl));
 	}
 
 	return zipWriter.close();
 }
 
-function downloadFile(blob) {
-	document.body.appendChild(Object.assign(document.createElement("a"), {
-		download: "album.zip",
-		href: URL.createObjectURL(blob),
-		textContent: "Download zip file",
-	}));
+function downloadFile(blob, albumId) {
+	const albumTitle = document.querySelector("#ss-plus-dl-album-" + albumId).closest(".album_title").childNodes[0].nodeValue;
+	const filename = cleanFilename(albumTitle + '.zip');
+
+	const dlLink = document.createElement("a");
+	dlLink.setAttribute('href', URL.createObjectURL(blob));
+	dlLink.setAttribute('download', filename);
+	dlLink.innerText = 'Download ' + filename;
+
+	document.querySelector("#ss-plus-dl-album-" + albumId).closest(".album_row").appendChild(dlLink);
+}
+
+function cleanFilename(filename) {
+	return filename.replace(/[^a-z0-9_\-\.]/gi, '_');
 }

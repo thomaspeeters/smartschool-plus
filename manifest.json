@@ -5,12 +5,14 @@
   "manifest_version": 3,
   "content_scripts": [
     {
-      "matches": ["https://*.smartschool.be/*"],
+      "matches": [
+        "https://*.smartschool.be/*"
+      ],
       "js": [
         "js/jquery-3.7.0.min.js",
         "js/fontawesome-all.min.js",
-        "js/content.js",
-		    "js/zip-full.min.js"
+        "js/zip-full.min.js",
+        "js/content.js"
       ],
       "css": [
         "css/style.css"
@@ -20,21 +22,14 @@
   "background": {
     "service_worker": "js/service-worker.js"
   },
-  "web_accessible_resources": [
-    {
-      "resources": ["iframe.html"],
-      "matches": ["https://*.smartschool.be/*"]
-    }
+  "host_permissions": [
+    "https://*.smartschool.be/*"
   ],
-  "host_permissions": ["https://*.smartschool.be/*"],
   "icons": {
     "16": "icon/icon-16.png",
     "32": "icon/icon-32.png",
     "48": "icon/icon-48.png",
     "128": "icon/icon-128.png"
-  },
-  "action": {
-    "default_popup": "index.html"
   },
   "permissions": [
     "offscreen",

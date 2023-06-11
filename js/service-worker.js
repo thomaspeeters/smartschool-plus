@@ -19,8 +19,8 @@ async function handleMessages(message) {
         }
     }
 
-    if(message.type === "dl-album-count-pages") {
-        if(message.data.numberOfPages && message.data.origin) {
+    if (message.type === "dl-album-count-pages") {
+        if (message.data.numberOfPages && message.data.origin) {
             sendMessageToOffscreenDocument("dl-album-get-photodata", {
                 albumId: message.data.albumId,
                 numberOfPages: message.data.numberOfPages,
@@ -29,56 +29,23 @@ async function handleMessages(message) {
         }
     }
 
-	if(message.type === "dl-album-get-photodata") {
-		if(message.data.photoData) {
-            const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+    if (message.type === "dl-album-get-photodata") {
+        if (message.data.photoData && message.data.albumId) {
+            const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
 
-injectIframe(tab);
+            chrome.tabs.sendMessage(tab.id, {
+                target: 'content',
+                type: 'make-album-zip',
+                data: {
+                    albumId: message.data.albumId,
+                    photoData: message.data.photoData
+                }
+            });
+        }
 
-			chrome.tabs.sendMessage(tab.id, {
-				target: 'content',
-				type: 'dl-album-photoData',
-				data: {
-					photoData: message.data.photoData
-				}
-			});
-		}
-
-		//closeOffscreenDocument();
-	}
+        closeOffscreenDocument();
+    }
 }
-
-function injectIframe(tab) {
-
-
-
-	chrome.scripting.executeScript({
-		target: { tabId: tab.id },
-		func: () => {
-
-            console.log(tab);
-            console.log(document);
-
-		  const oldIframe = document.getElementById('ss-plus-iframe');
-	
-		  if (oldIframe) {
-			oldIframe.remove();
-			return;
-		  }
-	
-		  const iframe = document.createElement('iframe');
-		  iframe.setAttribute('id', 'ss-plus-iframe');
-		  iframe.setAttribute(
-			'style',
-			'top: 10px;right: 10px;width: 400px;height: calc(100% - 20px);z-index: 2147483650;border: none; position:fixed;'
-		  );
-		  iframe.setAttribute('allow', '');
-		  iframe.src = chrome.runtime.getURL('iframe.html');
-	
-		  document.body.appendChild(iframe);
-		},
-	  });
-  }
 
 async function sendMessageToOffscreenDocument(type, data) {
     // Create an offscreen document if one doesn't exist yet
