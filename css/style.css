@@ -1,5 +1,3 @@
-
-
 .ss-plus-btn {
 	padding: 5px 10px;
 	color: #FFFFFF;
@@ -16,4 +14,39 @@
 a.ss-plus-btn {
 	display: inline-block;
 	margin: 5px 0;
+	max-height: 31px;
+}
+
+.ss-plus-btn span {
+	color: #FFFFFF !important;
+	font-size: 1rem !important;
+	margin-left: 5px;
+}
+
+.ss-plus-dl-album-panel {
+	clear: both;
+	background-color: #F1F1F1;
+	overflow: hidden;
+    text-wrap: nowrap;
+	padding: 5px;
+}
+
+.ss-plus-dl-album-panel .ss-plus-dl-album-btn,
+.ss-plus-dl-album-panel a {
+	margin: 0;
+}
+
+.ss-plus-dl-album-progress,
+.ss-plus-dl-album-progress a {
+	color: rgba(88,9,121,1) !important;
+	font-size: 1rem !important;
+	font-weight: bold;
+}
+
+.ss-plus-dl-album-progress {
+	margin-left: 5px;
+}
+
+.ss-plus-dl-album-zip {
+	color: #FFFFFF !important;
 }

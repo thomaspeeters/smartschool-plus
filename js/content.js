@@ -66,21 +66,34 @@ function initAlbums() {
 		let albumId = albumParams.get("album");
 
 		if (albumId) {
-			album.find('.album_title').append(
+			album.append(
+				$('<div></div>')
+					.attr("id", "ss-plus-dl-album-panel-" + albumId)
+					.addClass("ss-plus-dl-album-panel")
+			);
+
+			$("#ss-plus-dl-album-panel-" + albumId).append(
 				$("<button />")
-					.attr("id", "ss-plus-dl-album-" + albumId)
-					.addClass("ss-plus-btn ss-plus-dl-album")
-					.text(" Download album zip")
+					.attr("id", "ss-plus-dl-album-btn-" + albumId)
+					.addClass("ss-plus-btn ss-plus-dl-album-btn")
 					.prepend('<i class="fa-solid fa-download"></i>')
+					.append('<span>Download album zip</span>')
 					.on("click", function () {
 						dlAlbum(albumId);
-					})
+					}),
+				$('<span></span>')
+					.attr('id', 'ss-plus-dl-album-progress-' + albumId)
+					.addClass('ss-plus-dl-album-progress')
 			);
 		}
 	});
 }
 
 function dlAlbum(albumId) {
+	$('#ss-plus-dl-album-btn-' + albumId).prop("onclick", null).off("click").find('span').remove();
+	$('#ss-plus-dl-album-btn-' + albumId).find('svg').attr('data-icon', 'circle-notch').addClass('fa-spin');
+	$('#ss-plus-dl-album-progress-' + albumId).text("Gathering photos...");
+
 	(async () => {
 		const response = await chrome.runtime.sendMessage({
 			type: "dl-album",
@@ -96,15 +109,16 @@ function dlAlbum(albumId) {
 function makeAlbumZip(albumId, photoData) {
 	zip.configure({ chunkSize: 128, useWebWorkers: false });
 
-	getZipFileBlob(photoData)
+	getZipFileBlob(photoData, albumId)
 		.then(blob => downloadFile(blob, albumId));
 }
 
-async function getZipFileBlob(photoData) {
+async function getZipFileBlob(photoData, albumId) {
 	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
 
 	for (const photo of photoData) {
-		console.log("Adding photo " + photo.filename);
+		$('#ss-plus-dl-album-progress-' + albumId).text('Adding photo ' + photo.filename);
+
 		await zipWriter.add(photo.filename, new zip.HttpReader(photo.originalUrl));
 	}
 
@@ -112,7 +126,7 @@ async function getZipFileBlob(photoData) {
 }
 
 function downloadFile(blob, albumId) {
-	const albumTitle = document.querySelector("#ss-plus-dl-album-" + albumId).closest(".album_title").childNodes[0].nodeValue;
+	const albumTitle = $("#ss-plus-dl-album-panel-" + albumId).parent().find(".album_title").text();
 	const filename = cleanFilename(albumTitle + '.zip');
 
 	const dlLink = document.createElement("a");
@@ -120,7 +134,18 @@ function downloadFile(blob, albumId) {
 	dlLink.setAttribute('download', filename);
 	dlLink.innerText = 'Download ' + filename;
 
-	document.querySelector("#ss-plus-dl-album-" + albumId).closest(".album_row").appendChild(dlLink);
+	$('#ss-plus-dl-album-panel-' + albumId).prepend(
+		$('<a/>')
+			.attr("href", URL.createObjectURL(blob))
+			.attr("download", filename)
+			.attr("id", "ss-plus-dl-album-zip-" + albumId)
+			.addClass("ss-plus-btn ss-plus-dl-album-zip")
+			.text(' Download ' + filename)
+	);
+	$("#ss-plus-dl-album-zip-" + albumId).prepend('<i class="fa-solid fa-download"></i>');
+	$('#ss-plus-dl-album-progress-' + albumId).text(' Done').prepend('<i class="fa-solid fa-check"></i>');
+	$('#ss-plus-dl-album-btn-' + albumId).find('svg').attr('data-icon', 'check').removeClass('fa-spin');
+	$('#ss-plus-dl-album-btn-' + albumId).remove();
 }
 
 function cleanFilename(filename) {
