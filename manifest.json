@@ -32,6 +32,7 @@
     "128": "icon/icon-128.png"
   },
   "permissions": [
-    "offscreen"
+    "offscreen",
+    "tabs"
   ]
 }

@@ -67,13 +67,13 @@ async function getPhotoData(albumId, numberOfPages, photoOrigin) {
 
         let photoUrls = [...doc.querySelectorAll('.thumb_img a')].map(photoAnchor => photoOrigin + photoAnchor.getAttribute('href'));
 
-        photoData = photoData.concat(await processPhotoUrls(photoUrls, photoOrigin));
+        photoData = photoData.concat(await processPhotoUrls(photoUrls, photoOrigin, photoData));
     }
 
     return photoData;
 }
 
-async function processPhotoUrls(photoUrls, photoOrigin) {
+async function processPhotoUrls(photoUrls, photoOrigin, currentPhotodata) {
     const photoUrlData = [];
     const photoPages = await Promise.all(photoUrls.map(processUrl));
 
@@ -87,6 +87,13 @@ async function processPhotoUrls(photoUrls, photoOrigin) {
 
         let photoOriginalUrl = photoOrigin + "/index.php?module=Photos&file=load_photo&function=load_photo&obj_type=photo&img_type=original&id=" + photoId
 
+        // Check for duplicate filenames
+        for (const photo of currentPhotodata) {
+            if(photo.filename === photoFilename) {
+                photoFilename = addStringToFilename(photoFilename, "-" + Math.random().toString(36).slice(2, 7));
+            }
+        }
+
         photoUrlData.push({
             filename: photoFilename,
             originalUrl: photoOriginalUrl
@@ -94,6 +101,11 @@ async function processPhotoUrls(photoUrls, photoOrigin) {
     }
 
     return photoUrlData;
+}
+
+function addStringToFilename(filename, string) {
+    return filename.replace(/^([^.]+)$|(\.[^.]+)$/i, '$1' + string + '$2');
+
 }
 
 async function processUrl(url) {

@@ -76,8 +76,8 @@ function initAlbums() {
 				$("<button />")
 					.attr("id", "ss-plus-dl-album-btn-" + albumId)
 					.addClass("ss-plus-btn ss-plus-dl-album-btn")
-					.prepend('<i class="fa-solid fa-download"></i>')
-					.append('<span>Download album zip</span>')
+					.prepend('<i class="fa-solid fa-file-zipper"></i>')
+					.append('<span>Make album zip</span>')
 					.on("click", function () {
 						dlAlbum(albumId);
 					}),
@@ -94,16 +94,14 @@ function dlAlbum(albumId) {
 	$('#ss-plus-dl-album-btn-' + albumId).find('svg').attr('data-icon', 'circle-notch').addClass('fa-spin');
 	$('#ss-plus-dl-album-progress-' + albumId).text("Gathering photos...");
 
-	(async () => {
-		const response = await chrome.runtime.sendMessage({
-			type: "dl-album",
-			target: "service-worker",
-			data: {
-				albumId: albumId,
-				origin: window.location.origin
-			}
-		});
-	})();
+	chrome.runtime.sendMessage({
+		type: "dl-album",
+		target: "service-worker",
+		data: {
+			albumId: albumId,
+			origin: window.location.origin
+		}
+	});
 }
 
 function makeAlbumZip(albumId, photoData) {

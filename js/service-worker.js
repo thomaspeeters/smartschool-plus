@@ -31,7 +31,7 @@ async function handleMessages(message) {
 
     if (message.type === "dl-album-get-photodata") {
         if (message.data.photoData && message.data.albumId) {
-            const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
             chrome.tabs.sendMessage(tab.id, {
                 target: 'content',
